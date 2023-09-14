@@ -153,7 +153,7 @@ class Maze:
     #Méthode : Algorithme A-star
     #Retourne un tableau contenant des tuples représentant les coordonnées du chemin de résolution
     def astar_solving_path(self):
-        current_node = ( self.layout[0][0] , self.N * self.N - 1)               
+        return              
 
 
 
