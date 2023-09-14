@@ -4,12 +4,13 @@ from Cell import *
 pygame.init()
 
 class Maze:
-    def __init__(self, N):
+    def __init__(self, N, filename):
         self.N = N
+        self.filename = filename
         self.layout = [[Cell(i,j,N*i+j) for j in range(N)] for i in range(N)]
         self.done = False
 
-    #Affichage
+    #Retourne une chaîne de caractères, une version .txt du labyrinthe
     def doodle(self):
         LENGTH = 2*self.N+1
         doodle = [""] * LENGTH
@@ -34,6 +35,7 @@ class Maze:
 
         return '\n'.join(doodle)
 
+    #Affichage graphique du labyrinthe 
     def display(self):
         LENGTH = 2*self.N+1
         WIDTH = 825
@@ -45,13 +47,14 @@ class Maze:
         surfaceg = pygame.Surface((MCHUNK, MCHUNK))
         surfaceg.fill(COLOR)
         doodle = self.doodle().split('\n')
+        pygame.display.set_caption(f"Labyrinthe {self.N}x{self.N}") 
         for i in range(LENGTH):
             for j in range(LENGTH):
                 if doodle[i][j] == "#":
                     SCREEN.blit( surfaceg, (j*CHUNK,i*CHUNK))
-        pygame.display.set_caption(f"Labyrinthe {self.N}x{self.N}")     
         pygame.display.flip()
-
+                    
+    
     def get_neighbors(self, cell):
         CARD = {
          (1,0): "S",
@@ -82,13 +85,14 @@ class Maze:
 
     #Propagation de l'id
     def fuse_id(self, cell1, cell2):
+        max_id,min_id = max(cell1.id,cell2.id) , min(cell1.id,cell2.id)
         for i in range(self.N):
             for j in range(self.N):
-                if self.layout[i][j].id in (cell1.id, cell2.id):
-                    self.layout[i][j].setId(min(cell1.id, cell2.id))
+                if self.layout[i][j].id == max_id:
+                    self.layout[i][j].setId(min_id)
                     
         
-
+    #Création d'un labyrinthe par la méthode du recursive backtracking
     def backtrack(self):
         if self.done: return False
         current_cell = self.layout[0][0]
@@ -108,6 +112,7 @@ class Maze:
         self.done = True
         return True
     
+    #Créaton d'un labyrinthe par la méthode de l'algorithme de Kruskal
     def kruskal(self):
         if self.done: return False
         current_cell = self.layout[0][0] #Point de départ
@@ -124,22 +129,40 @@ class Maze:
         self.done = True
         return True
 
+    #Méthode : Recursive backtracking
+    #Retourne un tableau contenant des tuples représentant les coordonnées du chemin de résolution
     def backtrack_solving_path(self):
-        current_cell = self.layout[0][0]
-        path = [current_cell]
+        current_cell = self.layout[0][0] #Case de départ
+        path = [current_cell] #Chemin de résolution
         visited = []
-        while current_cell != self.layout[self.N-1][self.N-1]:
-            visited.append(current_cell)
-            neighbors = [x for x in self.get_neighbors(current_cell) if x[0] not in visited and not current_cell.walls[x[1]]]
+        while current_cell != self.layout[self.N-1][self.N-1]: #Boucle tant qu'on est pas à la sortie
+            visited.append(current_cell) #La cellule actuelle est marquée comme visitée
+            #On recherche les voisins non-visités auxquels on peut accéder
+            neighbors = [x for x in self.get_neighbors(current_cell) if x[0] not in visited and not current_cell.walls[x[1]]] 
             if neighbors:
-                neighbor = next_cell, direction = rd.choice(neighbors)
+                #On ajoute un voisin aléatoire au chemin et update la cellule courante
+                neighbor = next_cell, direction = rd.choice(neighbors) 
                 path.append(next_cell)
                 current_cell = next_cell
             else:
-                path.pop(-1)
-                current_cell = path[-1]
+                #Si il n'y a plus de voisins disponibles
+                path.pop(-1) #Dépilage
+                current_cell = path[-1] #Retour en arrière
         return [(cell.x, cell.y) for cell in path]
 
+    #Méthode : Algorithme A-star
+    #Retourne un tableau contenant des tuples représentant les coordonnées du chemin de résolution
+    def astar_solving_path(self):
+        current_node = ( self.layout[0][0] , self.N * self.N - 1)               
+
+
+
+
+
+
+        
+    #Chemin de résolution en entrée
+    #Affichage graphique du labyrinthe et du chemin de résolution
     def solving_display(self, path):
         WIDTH = 825
         COLOR = (255,0,255)
@@ -147,18 +170,21 @@ class Maze:
         SIZE = WIDTH,WIDTH
         SCREEN = pygame.display.set_mode(SIZE)
         CHUNK = WIDTH/LENGTH
-        THICKNESS = int(CHUNK/4)
-        TEMPO = 0.02
+        THICKNESS = int(CHUNK/2)
+        TEMPO = 1.5
         
-        self.display()
+        
+        self.display() #Affichage du labyrinthe
+        time.sleep(TEMPO)
         pygame.draw.line(SCREEN, COLOR , (0,3*CHUNK/2) , (3*CHUNK/2,3*CHUNK/2), THICKNESS) #Entrée
+        #Liaison de tous les points du chemin
         for i,coord in enumerate(path):
             if i==0: continue
             x2,y2 = coord
             x1,y1 = path[i-1]
-            pygame.draw.line( SCREEN, COLOR, ((3+4*y1)*CHUNK/2 , (3+4*x1)*CHUNK/2 ) , ((3+4*y2)*CHUNK/2 , (3+4*x2)*CHUNK/2),THICKNESS)
+            pygame.draw.line( SCREEN, COLOR, ((3+4*y1)*CHUNK/2 , (3+4*x1)*CHUNK/2 ) , ((3+4*y2)*CHUNK/2 , (3+4*x2)*CHUNK/2), THICKNESS)
             pygame.display.flip()
-            time.sleep(TEMPO)
+            time.sleep(0.002)
         pygame.draw.line(SCREEN, COLOR , (WIDTH-3*CHUNK/2,WIDTH-3*CHUNK/2) , (WIDTH,WIDTH-3*CHUNK/2), THICKNESS) #Sortie
         pygame.display.flip()
         
