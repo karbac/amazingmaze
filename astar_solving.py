@@ -7,9 +7,9 @@ import os
 #    print("Fichier non-existant")
 #    exit()
 
-filename = "kruskal36.txt"
+filename = "random50.txt"
 maze = create_maze_from_file(filename)
-maze.display()
+path = maze.astar_solving_path()
+maze.solving_display( path )
 
-#maze.solving_display( maze.astar_solving_path() )
-
+print(len(path))
