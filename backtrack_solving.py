@@ -7,7 +7,7 @@ import os
 #    print("Fichier non-existant")
 #    exit()
 
-filename = "random64.txt"
+filename = "random30.txt"
 maze = create_maze_from_file(filename)
 mapping = maze.backtrack_solving_map()
 

@@ -1,10 +1,6 @@
 from Maze import *
 
 
-#Création d'un fichier texte représentant un labyrinthe
-def create_file(maze):
-    with open(f"doodles/{maze.filename}",'w') as f:
-        f.write(maze.doodle())
 
 #Création d'un objet labyrinthe à partir d'un fichier texte
 def create_maze_from_file(filename):
@@ -15,12 +11,14 @@ def create_maze_from_file(filename):
     maze = Maze(N, filename)
     for i in range(length):
         for j in range(length):
-            if doodle[i][j] != ".": continue #murs
-            if i%2 and j%2: continue #cellules
-            #murs brisés
+            if doodle[i][j] != ".": continue #Murs
+            if i%2 and j%2: continue #Position des cellules
+            #Murs brisés
             if i%2:
+                #Reliant deux cellules horizontalement
                 maze.layout[int(i/2)][int((j-2)/2)].breakWall( (maze.layout[int(i/2)][int((j-2)/2)+1] , "E") )
             else:
+                #Reliant deux cellules verticalement
                 maze.layout[int((i-2)/2)][int(j/2)].breakWall( (maze.layout[int((i-2)/2)+1][int(j/2)] , "S") )
     maze.done = True
     return maze            
