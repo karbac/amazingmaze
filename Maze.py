@@ -18,9 +18,11 @@ class Maze:
         cell.breakWall(rd.choice(neighbors))
     
     #Retourne une chaîne de caractères, une version .txt du labyrinthe
-    def doodle(self):
+    def doodle(self,mapping=None):
         LENGTH = 2*self.N+1
         doodle = [""] * LENGTH
+        if mapping:
+            path, heatmap = mapping
         for i in range(LENGTH):
             for j in range(LENGTH):
                 if (i,j) == (1,0) or (i,j) == (LENGTH-2, LENGTH-1):
@@ -31,7 +33,11 @@ class Maze:
                     continue
                 if i%2:
                     if j%2:
-                        doodle[i] += "."
+                        if not mapping:
+                            doodle[i] += "."
+                        else:
+                            cell = self.layout[int(i/2)][int(j/2)]                            
+                            doodle[i] += "o" if (cell.x,cell.y) in path else "*" if (cell.x,cell.y) in heatmap else "."
                     else:
                         doodle[i] += "." if not self.layout[int(i/2)][int((j-2)/2)].walls.get("E") else "#"
                 else:
@@ -135,39 +141,66 @@ class Maze:
                 current_cell = self.get_random_other_cell(current_cell.id) #On repart d'une cellule aléatoire avec un différent id
         self.done = True
         return True
-
+    
+    #Algorithme de Kruskal - alternative 
+    def kruskal2(self):
+        if self.done: return False
+        walls = []
+        DIR = {
+            "S": (1,0),
+            "E": (0,1)
+        }
+        for i in range(self.N):
+            for j in range(self.N):
+                if i != self.N - 1:
+                    walls.append( (self.layout[i][j] , "S") )
+                if j != self.N - 1:
+                    walls.append( (self.layout[i][j] , "E") )
+        rd.shuffle(walls)
+        for wall in walls:
+            cell , direction = wall
+            neighboring_cell = self.layout[cell.x + DIR[direction][0]][cell.y + DIR[direction][1]]
+            if cell.id == neighboring_cell.id: continue
+            cell.breakWall((neighboring_cell, direction))
+            self.fuse_id(cell, neighboring_cell)
+        self.done = True
+        return True
     
 
     #Méthode : Recursive backtracking
-    #Retourne un tableau contenant des tuples représentant les coordonnées du chemin de résolution
-    def backtrack_solving_path(self):
+    #Retourne un tuple de 2 éléments contenant :
+    #Un tableau contenant les coordonnées du chemin de résolution
+    #Un tableau contenant les coordonnées des cases visitées
+    def backtrack_solving_map(self):
         current_cell = self.layout[0][0] #Case de départ
         path = [current_cell] #Chemin de résolution
-        visited = []
+        heatmap = [current_cell]
         while current_cell != self.layout[self.N-1][self.N-1]: #Boucle tant qu'on est pas à la sortie
-            visited.append(current_cell) #La cellule actuelle est marquée comme visitée
             #On recherche les voisins non-visités auxquels on peut accéder
-            neighboring_cells = [x[0] for x in self.get_neighbors(current_cell) if x[0] not in visited and not current_cell.walls[x[1]]] 
+            neighboring_cells = [x[0] for x in self.get_neighbors(current_cell) if x[0] not in heatmap and not current_cell.walls[x[1]]] 
             if neighboring_cells:
                 #On ajoute un voisin aléatoire au chemin et update la cellule courante
                 next_cell = rd.choice(neighboring_cells) 
-                path.append(next_cell)
                 current_cell = next_cell
+                path.append(current_cell)
+                heatmap.append(current_cell) #La cellule est marquée comme visitée
             else:
                 #Si il n'y a plus de voisins disponibles
                 path.pop(-1) #Dépilage
                 current_cell = path[-1] #Retour en arrière
-        return [(cell.x, cell.y) for cell in path]
+        return ( [(cell.x, cell.y) for cell in path] , [(cell.x, cell.y) for cell in heatmap] )
 
 
     def dist(self, cell):
         return 2*(self.N-1) - cell.x - cell.y
     
     #Méthode : Algorithme A-star
-    #Retourne un tableau contenant des tuples représentant les coordonnées du chemin de résolution
-    def astar_solving_path(self):
+    #Retourne un tuple de 2 éléments contenant :
+    #Un tableau contenant les coordonnées du chemin de résolution
+    #Un tableau contenant les coordonnées des cases visitées
+    def astar_solving_map(self):
         #Initialisation
-        closed_list = []
+        heatmap = []
         current_cell = self.layout[0][0]
         cost = {} #Coût
         score = {} #Score = Coût total estimé
@@ -178,18 +211,16 @@ class Maze:
 
         while open_list:
             #On choisit la cellule avec le coût total le plus bas
-            open_list.sort(key = lambda x: score[x])
-            current_cell = open_list[0]
-            if current_cell == self.layout[self.N-1][self.N-1]: #On a trouvé la sortie
-                break
+            current_cell = min(open_list, key = lambda x: score[x])
+            heatmap.append(current_cell)
+            if current_cell == self.layout[self.N-1][self.N-1]: break #On a trouvé la sortie
 
-            #La cellule est déplacée de la liste ouverte à la liste fermée
-            closed_list.append(current_cell)
+            #La cellule est retirée de la liste ouverte
             open_list.remove(current_cell)
             #On collecte les voisins possibles
             neighboring_cells = [x[0] for x in self.get_neighbors(current_cell) if not current_cell.walls[x[1]] ]
             for neighboring_cell in neighboring_cells:
-                if neighboring_cell in closed_list: continue
+                if neighboring_cell in heatmap: continue
                 int_cost = cost[current_cell] + 1
                 if int_cost < score.get(neighboring_cell, float('inf')):
                     #Coût inférieur : on garde
@@ -208,50 +239,65 @@ class Maze:
         while parent.get(current_cell):
             current_cell = parent[current_cell]
             path = [current_cell] + path
-        return [(cell.x, cell.y) for cell in path]
+        return ( [(cell.x, cell.y) for cell in path] , [(cell.x, cell.y) for cell in heatmap] )
 
 
         
     #Chemin de résolution en entrée
     #Affichage graphique du labyrinthe et du chemin de résolution
-    def solving_display(self, path, path2=None):
+    def solving_display(self, mapping, mapping2 = None , show_heatmap=True):
         WIDTH = 825
-        COLOR = (255,0,255)
+        PATHCOLOR = (255,255,255)
+        HEATCOLOR = (255,0,255)
+        PATHCOLOR2 = HEATCOLOR
         LENGTH = 2*self.N+1
         SIZE = WIDTH,WIDTH
         SCREEN = pygame.display.set_mode(SIZE)
         CHUNK = WIDTH/LENGTH
         THICKNESS = int(CHUNK/2)
         TEMPO = 1
-        
-        
-        
+
+        path, heatmap = mapping
         self.display() #Affichage du labyrinthe
         time.sleep(TEMPO)
-        pygame.draw.line(SCREEN, COLOR , (0,3*CHUNK/2) , (3*CHUNK/2,3*CHUNK/2), THICKNESS) #Entrée
+
+        if show_heatmap and not mapping2:
+            HEATCHUNK = pygame.Surface((CHUNK,CHUNK))
+            HEATCHUNK.fill(HEATCOLOR)
+            for coord in heatmap:
+                x,y = coord
+                SCREEN.blit( HEATCHUNK , ( (2*y+1)*CHUNK , (2*x+1)*CHUNK) )
+                pygame.display.flip()
+                #time.sleep(0.1)
+
+        time.sleep(TEMPO)
+        
+        #Affiche 
+        if mapping2:
+            path2 = mapping2[0]
+            for i,coord in enumerate(path2):
+                if i==0: continue
+                x2,y2 = coord
+                x1,y1 = path2[i-1]
+                pygame.draw.line( SCREEN, PATHCOLOR2 , ((3+4*y1)*CHUNK/2 , (3+4*x1)*CHUNK/2 ) , ((3+4*y2)*CHUNK/2 , (3+4*x2)*CHUNK/2), THICKNESS)
+                pygame.display.flip()
+                #time.sleep(0.002)
+
+        time.sleep(TEMPO)
+        pygame.draw.line(SCREEN, PATHCOLOR , (0,3*CHUNK/2) , (3*CHUNK/2,3*CHUNK/2), THICKNESS) #Entrée
         #Liaison de tous les points du chemin
         for i,coord in enumerate(path):
             if i==0: continue
             x2,y2 = coord
             x1,y1 = path[i-1]
-            pygame.draw.line( SCREEN, COLOR, ((3+4*y1)*CHUNK/2 , (3+4*x1)*CHUNK/2 ) , ((3+4*y2)*CHUNK/2 , (3+4*x2)*CHUNK/2), THICKNESS)
+            pygame.draw.line( SCREEN, PATHCOLOR, ((3+4*y1)*CHUNK/2 , (3+4*x1)*CHUNK/2 ) , ((3+4*y2)*CHUNK/2 , (3+4*x2)*CHUNK/2), THICKNESS)
             pygame.display.flip()
-            time.sleep(0.002)
-        pygame.draw.line(SCREEN, COLOR , (WIDTH-3*CHUNK/2,WIDTH-3*CHUNK/2) , (WIDTH,WIDTH-3*CHUNK/2), THICKNESS) #Sortie
+            #time.sleep(0.002)
+        pygame.draw.line(SCREEN, PATHCOLOR , (WIDTH-3*CHUNK/2,WIDTH-3*CHUNK/2) , (WIDTH,WIDTH-3*CHUNK/2), THICKNESS) #Sortie
         pygame.display.flip()
-        if path2:
-            COLOR2 = (255,255,255)
-            time.sleep(TEMPO)
-            pygame.draw.line(SCREEN, COLOR2 , (0,3*CHUNK/2) , (3*CHUNK/2,3*CHUNK/2), THICKNESS) #Entrée
-            for i,coord in enumerate(path2):
-                if i==0: continue
-                x2,y2 = coord
-                x1,y1 = path2[i-1]
-                pygame.draw.line( SCREEN, COLOR2, ((3+4*y1)*CHUNK/2 , (3+4*x1)*CHUNK/2 ) , ((3+4*y2)*CHUNK/2 , (3+4*x2)*CHUNK/2), THICKNESS)
-                pygame.display.flip()
-                time.sleep(0.002)
-            pygame.draw.line(SCREEN, COLOR2 , (WIDTH-3*CHUNK/2,WIDTH-3*CHUNK/2) , (WIDTH,WIDTH-3*CHUNK/2), THICKNESS) #Sortie
-            pygame.display.flip()
+
+            
+       
         
         
         
