@@ -18,7 +18,7 @@ class Cell:
 
     #Paramètre neighbor : tuple contenant une cellule ainsi qu'une direction
     def breakWall(self,neighbor):
-        adj_cell, direction = neighbor
-        OPPDIR = {"N": "S", "S": "N" , "W": "E" , "E": "W"} 
-        self.walls[direction] = False
-        adj_cell.walls[OPPDIR[direction]] = False
+        adj_cell, card = neighbor
+        OPPCARD = {"N": "S", "S": "N" , "W": "E" , "E": "W"} 
+        self.walls[card] = False
+        adj_cell.walls[OPPCARD[card]] = False

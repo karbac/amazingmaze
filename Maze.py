@@ -9,12 +9,7 @@ class Maze:
         self.filename = filename
         self.layout = [[Cell(v,h,N*v+h) for h in range(N)] for v in range(N)]
         self.done = False
-        self.COMPASS = {
-         (1,0): "S",
-         (0,1): "E",
-         (-1,0): "N",
-         (0,-1): "W"
-        }
+
 
     #Casse un mur au hasard
     def break_random_wall(self):
@@ -86,14 +81,19 @@ class Maze:
                     
     
     def get_neighbors(self, cell):
-
+        DIR = {
+         (1,0): "S",
+         (0,1): "E",
+         (-1,0): "N",
+         (0,-1): "W"
+        }
         neighbors = []
         
-        for direction in self.COMPASS:
+        for direction in DIR:
             vtarg , htarg = cell.v+direction[0] , cell.h+direction[1]
             if min(vtarg,htarg) < 0 or max(vtarg,htarg) >= self.N: continue #out of range
             targ = self.layout[vtarg][htarg]
-            neighbors.append((targ, self.COMPASS.get(direction)))
+            neighbors.append((targ, DIR[direction]))
         return neighbors
 
     
@@ -136,6 +136,7 @@ class Maze:
     def kruskal_generate(self):
         if self.done: return False
         walls = []
+        DIR = { "S" : (1,0) , "E" : (0,1) }
         BOARD = {} #Dictionnaire - Clé = id , valeur = tableau de cellules correspondant
         for v in range(self.N):
             for h in range(self.N):
@@ -146,11 +147,11 @@ class Maze:
                     walls.append( (self.layout[v][h] , "E") )
         rd.shuffle(walls)
         for wall in walls:
-            cell , direction = wall
-            coord = [x for x in self.COMPASS if self.COMPASS[x]==direction][0]
-            neighboring_cell = self.layout[cell.v + coord[0]][cell.h + coord[1]]
+            #if len(BOARD) == 1: break
+            cell , card = wall
+            neighboring_cell = self.layout[cell.v + DIR[card][0]][cell.h + DIR[card][1]]
             if cell.id == neighboring_cell.id: continue
-            cell.breakWall((neighboring_cell, direction))
+            cell.breakWall((neighboring_cell, card))
             #Fusion des composantes connexes sous l'id minimal
             max_id,min_id = max(cell.id,neighboring_cell.id) , min(cell.id,neighboring_cell.id)
             for cell in BOARD[max_id]:
@@ -185,7 +186,7 @@ class Maze:
                 #Si il n'y a plus de voisins disponibles
                 path.pop(-1) #Dépilage
                 current_cell = path[-1] #Retour en arrière
-        return ( [(cell.v, cell.h) for cell in path] , [(cell.v, cell.h) for cell in heatmap] )
+        return ( [(cell.v, cell.h) for cell in path] , [(cell.v, cell.h) for cell in heatmap] , "RB")
 
 
     def dist(self, cell):
@@ -236,7 +237,7 @@ class Maze:
         while parent.get(current_cell):
             current_cell = parent[current_cell]
             path = [current_cell] + path
-        return ( [(cell.v, cell.h) for cell in path] , [(cell.v, cell.h) for cell in heatmap])
+        return ( [(cell.v, cell.h) for cell in path] , [(cell.v, cell.h) for cell in heatmap], "ASTAR")
 
 
         
@@ -255,7 +256,7 @@ class Maze:
         THICKNESS = max(int(CHUNK/2),1)
         TEMPO = 0.5
 
-        path, heatmap = mapping
+        path, heatmap, label = mapping
         self.display(solving=True) #Affichage du labyrinthe brut
         time.sleep(TEMPO)
 
@@ -292,8 +293,8 @@ class Maze:
         pygame.draw.line(SCREEN, PATHCOLOR , (WIDTH-3*CHUNK/2,WIDTH-3*CHUNK/2) , (WIDTH,WIDTH-3*CHUNK/2), THICKNESS) #Sortie
         pygame.display.flip()
         #Sauvegarde de l'image
-        pygame.image.save(SCREEN, f"solvedmazes/{self.filename}.jpg")
-        print(f"Image sauvegardée dans le dossier solvedmazes sous le nom : {self.filename}.jpg")
+        pygame.image.save(SCREEN, f"solvedmazes/{self.filename}-{label}.jpg")
+        print(f"Image sauvegardée dans le dossier solvedmazes sous le nom : {self.filename}-{label}.jpg")
 
             
        

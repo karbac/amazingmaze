@@ -8,7 +8,7 @@ import os
 #    print("Fichier non-existant")
 #    exit()
 
-filename = "random99.txt"
+filename = "random50.txt"
 start = time.time()
 maze = create_maze_from_doodlefile(filename)
 mapping = maze.backtrack_solving_map()
