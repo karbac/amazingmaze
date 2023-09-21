@@ -4,12 +4,12 @@ from util import *
 #Génére un fichier .txt représentant un labyrinthe aléatoire de la taille demandée
 
 #N = int(input("Entrez la taille du labyrinthe : "))
-N = 30
+N = 99
 #filename = input("Entrez le nom du fichier : ")
-filename = f"random{N}.txt"
-maze = Maze(N,filename)
+filename = f"random{N}"
 start = time.time()
-maze.backtrack()
+maze = Maze(N,filename)
+maze.backtrack_generate()
 end = time.time()
 print(end-start)
 maze.create_file()

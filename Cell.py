@@ -1,7 +1,7 @@
 class Cell:
-    def __init__(self,x,y,id):
-        self.x = x
-        self.y = y
+    def __init__(self,v,h,id):
+        self.v = v
+        self.h = h
         self.id = id
         self.walls = {
             "N": True,

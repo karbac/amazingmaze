@@ -3,12 +3,12 @@ from Maze import *
 
 
 #Création d'un objet labyrinthe à partir d'un fichier texte
-def create_maze_from_file(filename):
+def create_maze_from_doodlefile(filename):
     with open(f"doodles/{filename}",'r') as f:
         doodle = [x.strip() for x in f.readlines()] 
     length = len(doodle)
     N = int( length / 2 )
-    maze = Maze(N, filename)
+    maze = Maze(N, filename[:-4])
     for i in range(length):
         for j in range(length):
             if doodle[i][j] != ".": continue #Murs

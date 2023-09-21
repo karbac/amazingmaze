@@ -7,8 +7,14 @@ class Maze:
     def __init__(self, N, filename):
         self.N = N
         self.filename = filename
-        self.layout = [[Cell(i,j,N*i+j) for j in range(N)] for i in range(N)]
+        self.layout = [[Cell(v,h,N*v+h) for h in range(N)] for v in range(N)]
         self.done = False
+        self.COMPASS = {
+         (1,0): "S",
+         (0,1): "E",
+         (-1,0): "N",
+         (0,-1): "W"
+        }
 
     #Casse un mur au hasard
     def break_random_wall(self):
@@ -20,7 +26,7 @@ class Maze:
 
     #Création d'un fichier texte représentant un labyrinthe
     def create_file(self):
-        with open(f"doodles/{self.filename}",'w') as f:
+        with open(f"doodles/{self.filename}.txt",'w') as f:
             f.write(self.doodle())
             
     #Retourne une chaîne de caractères, une version .txt du labyrinthe
@@ -43,7 +49,7 @@ class Maze:
                             doodle[i] += "."
                         else:
                             cell = self.layout[int(i/2)][int(j/2)]                            
-                            doodle[i] += "o" if (cell.x,cell.y) in path else "*" if (cell.x,cell.y) in heatmap else "."
+                            doodle[i] += "o" if (cell.v,cell.h) in path else "*" if (cell.v,cell.h) in heatmap else "."
                     else:
                         doodle[i] += "." if not self.layout[int(i/2)][int((j-2)/2)].walls.get("E") else "#"
                 else:
@@ -54,8 +60,8 @@ class Maze:
 
         return '\n'.join(doodle)
 
-    #Affichage graphique du labyrinthe avec pygame
-    def display(self):
+    #Affichage graphique du labyrinthe avec pygame et sauvegarde de l'image
+    def display(self,solving=False):
         #Paramètres
         LENGTH = 2*self.N+1
         WIDTH = 825
@@ -63,7 +69,7 @@ class Maze:
         SIZE = WIDTH,WIDTH
         SCREEN = pygame.display.set_mode(SIZE)
         CHUNK = WIDTH/LENGTH
-        MCHUNK = CHUNK + 1
+        MCHUNK = CHUNK + 1 
         SURFACE = pygame.Surface((MCHUNK, MCHUNK))
         SURFACE.fill(COLOR)
         DOODLE = self.doodle().split('\n')
@@ -73,30 +79,27 @@ class Maze:
                 if DOODLE[i][j] == "#":
                     SCREEN.blit( SURFACE, (j*CHUNK,i*CHUNK))
         pygame.display.flip()
+        if not solving:
+            pygame.image.save(SCREEN, f"mazes/{self.filename.split('.')[0]}.jpg")
+            print(f"Image sauvegardée dans le dossier mazes sous le nom : {self.filename}.jpg")
+        
                     
     
     def get_neighbors(self, cell):
-        CARD = {
-         (1,0): "S",
-         (0,1): "E",
-         (-1,0): "N",
-         (0,-1): "W"
-        }
 
         neighbors = []
         
-        for direction in CARD:
-            xtarg , ytarg = cell.x+direction[0] , cell.y+direction[1]
-            if min(xtarg,ytarg) < 0 or max(xtarg,ytarg) >= self.N: #out of range
-                continue
-            targ = self.layout[xtarg][ytarg]
-            neighbors.append((targ, CARD.get(direction)))
+        for direction in self.COMPASS:
+            vtarg , htarg = cell.v+direction[0] , cell.h+direction[1]
+            if min(vtarg,htarg) < 0 or max(vtarg,htarg) >= self.N: continue #out of range
+            targ = self.layout[vtarg][htarg]
+            neighbors.append((targ, self.COMPASS.get(direction)))
         return neighbors
 
     
         
     #Création d'un labyrinthe par la méthode du recursive backtracking
-    def backtrack(self):
+    def backtrack_generate(self):
         if self.done: return False
         current_cell = self.layout[0][0]
         pile = [current_cell]
@@ -115,13 +118,6 @@ class Maze:
         self.done = True
         return True
 
-    #Propagation de l'id
-    def fuse_id(self, cell1, cell2):
-        max_id,min_id = max(cell1.id,cell2.id) , min(cell1.id,cell2.id)
-        for i in range(self.N):
-            for j in range(self.N):
-                if self.layout[i][j].id == max_id:
-                    self.layout[i][j].setId(min_id)
 
     #Retourne une cellule aléatoire, d'un id différent que celui passé en paramètre
     def get_random_other_cell(self, id):
@@ -130,51 +126,40 @@ class Maze:
             for j in range(self.N):
                 if self.layout[i][j].id != id:
                     cells.append(self.layout[i][j])
-        return rd.choice(cells) if cells else None
-    
-    #Créaton d'un labyrinthe par la méthode de l'algorithme de Kruskal
-    #On part d'une cellule aléatoire et on casse les murs de proche en proche
-    #En arrivant à une impasse, on repart d'une autre cellule aléatoire et on reprend le processus
-    #Condition de fin : Toutes les cellules partagent le même id
-    def kruskal(self):
-        if self.done: return False
-        current_cell = rd.choice(rd.choice(self.layout)) #Point de départ aléatoire
-        while current_cell: #Tant qu'il existe une cellule avec un id différent
-            neighbors = [x for x in self.get_neighbors(current_cell) if x[0].id != current_cell.id] #Voisins avec un id différent
-            if neighbors: #Si un voisin valide existe
-                neighbor = next_cell, direction = rd.choice(neighbors)
-                current_cell.breakWall(neighbor) #Cassage du mur d'un voisin aléatoire
-                self.fuse_id(current_cell, next_cell) #Fusion des cellules
-                current_cell = next_cell #Update cellule courante
-                
-            else:
-                current_cell = self.get_random_other_cell(current_cell.id) #On repart d'une cellule aléatoire avec un différent id
-        self.done = True
-        return True
+        return rd.choice(cells) if cells else None    
+
     
     #Algorithme de Kruskal
-    #Alternative avec le mélange des murs
+    #On collecte tous les murs séparant deux cellules
     #On parcourt chaque mur, et on détruit si les deux cellules adjacentes n'ont pas le même id
-    def kruskal2(self):
+    #On fusionne les composantes connexes sous le même id
+    def kruskal_generate(self):
         if self.done: return False
         walls = []
-        DIR = {
-            "S": (1,0),
-            "E": (0,1)
-        }
-        for i in range(self.N):
-            for j in range(self.N):
-                if i != self.N - 1:
-                    walls.append( (self.layout[i][j] , "S") )
-                if j != self.N - 1:
-                    walls.append( (self.layout[i][j] , "E") )
+        BOARD = {} #Dictionnaire - Clé = id , valeur = tableau de cellules correspondant
+        for v in range(self.N):
+            for h in range(self.N):
+                BOARD[self.layout[v][h].id] = [self.layout[v][h]]
+                if v != self.N - 1:
+                    walls.append( (self.layout[v][h] , "S") )
+                if h != self.N - 1:
+                    walls.append( (self.layout[v][h] , "E") )
         rd.shuffle(walls)
         for wall in walls:
             cell , direction = wall
-            neighboring_cell = self.layout[cell.x + DIR[direction][0]][cell.y + DIR[direction][1]]
+            coord = [x for x in self.COMPASS if self.COMPASS[x]==direction][0]
+            neighboring_cell = self.layout[cell.v + coord[0]][cell.h + coord[1]]
             if cell.id == neighboring_cell.id: continue
             cell.breakWall((neighboring_cell, direction))
-            self.fuse_id(cell, neighboring_cell)
+            #Fusion des composantes connexes sous l'id minimal
+            max_id,min_id = max(cell.id,neighboring_cell.id) , min(cell.id,neighboring_cell.id)
+            for cell in BOARD[max_id]:
+                BOARD[min_id].append(cell)
+                cell.id = min_id
+            BOARD.pop(max_id)          
+            
+            
+            #self.fuse_id(cell, neighboring_cell)
         self.done = True
         return True
     
@@ -200,11 +185,11 @@ class Maze:
                 #Si il n'y a plus de voisins disponibles
                 path.pop(-1) #Dépilage
                 current_cell = path[-1] #Retour en arrière
-        return ( [(cell.x, cell.y) for cell in path] , [(cell.x, cell.y) for cell in heatmap] )
+        return ( [(cell.v, cell.h) for cell in path] , [(cell.v, cell.h) for cell in heatmap] )
 
 
     def dist(self, cell):
-        return 2*(self.N-1) - cell.x - cell.y
+        return 2*(self.N-1) - cell.v - cell.h
     
     #Résolution par l'algorithme A-star
     #Retourne un tuple de 2 éléments contenant :
@@ -251,7 +236,7 @@ class Maze:
         while parent.get(current_cell):
             current_cell = parent[current_cell]
             path = [current_cell] + path
-        return ( [(cell.x, cell.y) for cell in path] , [(cell.x, cell.y) for cell in heatmap])
+        return ( [(cell.v, cell.h) for cell in path] , [(cell.v, cell.h) for cell in heatmap])
 
 
         
@@ -267,11 +252,11 @@ class Maze:
         SIZE = WIDTH,WIDTH
         SCREEN = pygame.display.set_mode(SIZE)
         CHUNK = WIDTH/LENGTH
-        THICKNESS = int(CHUNK/2)
-        TEMPO = 1
+        THICKNESS = max(int(CHUNK/2),1)
+        TEMPO = 0.5
 
         path, heatmap = mapping
-        self.display() #Affichage du labyrinthe brut
+        self.display(solving=True) #Affichage du labyrinthe brut
         time.sleep(TEMPO)
 
         #Affiche tous les points visités par l'algorithme
@@ -282,7 +267,6 @@ class Maze:
                 x,y = coord
                 SCREEN.blit( HEATCHUNK , ( (2*y+1)*CHUNK , (2*x+1)*CHUNK) )
                 pygame.display.flip()
-                #time.sleep(0.1)
 
         time.sleep(TEMPO)
         
@@ -291,24 +275,25 @@ class Maze:
             path2 = mapping2[0]
             for i,coord in enumerate(path2):
                 if i==0: continue
-                x2,y2 = coord
-                x1,y1 = path2[i-1]
-                pygame.draw.line( SCREEN, PATHCOLOR2 , ((3+4*y1)*CHUNK/2 , (3+4*x1)*CHUNK/2 ) , ((3+4*y2)*CHUNK/2 , (3+4*x2)*CHUNK/2), THICKNESS)
+                v2,h2 = coord
+                v1,h1 = path2[i-1]
+                pygame.draw.line( SCREEN, PATHCOLOR2 , ((3+4*h1)*CHUNK/2 , (3+4*v1)*CHUNK/2 ) , ((3+4*h2)*CHUNK/2 , (3+4*v2)*CHUNK/2), THICKNESS)
                 pygame.display.flip()
-                #time.sleep(0.002)
 
         time.sleep(TEMPO)
         pygame.draw.line(SCREEN, PATHCOLOR , (0,3*CHUNK/2) , (3*CHUNK/2,3*CHUNK/2), THICKNESS) #Entrée
         #Liaison de tous les points du chemin
         for i,coord in enumerate(path):
             if i==0: continue
-            x2,y2 = coord
-            x1,y1 = path[i-1]
-            pygame.draw.line( SCREEN, PATHCOLOR, ((3+4*y1)*CHUNK/2 , (3+4*x1)*CHUNK/2 ) , ((3+4*y2)*CHUNK/2 , (3+4*x2)*CHUNK/2), THICKNESS)
+            v2,h2 = coord
+            v1,h1 = path[i-1]
+            pygame.draw.line( SCREEN, PATHCOLOR, ((3+4*h1)*CHUNK/2 , (3+4*v1)*CHUNK/2 ) , ((3+4*h2)*CHUNK/2 , (3+4*v2)*CHUNK/2), THICKNESS)
             pygame.display.flip()
-            #time.sleep(0.002)
         pygame.draw.line(SCREEN, PATHCOLOR , (WIDTH-3*CHUNK/2,WIDTH-3*CHUNK/2) , (WIDTH,WIDTH-3*CHUNK/2), THICKNESS) #Sortie
         pygame.display.flip()
+        #Sauvegarde de l'image
+        pygame.image.save(SCREEN, f"solvedmazes/{self.filename}.jpg")
+        print(f"Image sauvegardée dans le dossier solvedmazes sous le nom : {self.filename}.jpg")
 
             
        
