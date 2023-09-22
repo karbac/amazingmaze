@@ -12,6 +12,7 @@ class Maze:
 
 
     #Casse un mur au hasard
+    #Permer de créer des labyrinthes à boucles
     def break_random_wall(self):
         neighbors = []
         while not neighbors:
@@ -19,7 +20,7 @@ class Maze:
             neighbors = [x for x in self.get_neighbors(cell) if cell.walls[x[1]]]
         cell.breakWall(rd.choice(neighbors))
 
-    #Création d'un fichier texte représentant un labyrinthe
+    #Création d'un fichier texte représentant un labyrinthe, dans le dossier doodles
     def create_file(self):
         with open(f"doodles/{self.filename}.txt",'w') as f:
             f.write(self.doodle())
@@ -157,18 +158,16 @@ class Maze:
             for cell in BOARD[max_id]:
                 BOARD[min_id].append(cell)
                 cell.id = min_id
-            BOARD.pop(max_id)          
-            
-            
-            #self.fuse_id(cell, neighboring_cell)
+            BOARD.pop(max_id) #Le max_id n'existe plus         
         self.done = True
         return True
     
 
     #Résolution par Recursive backtracking
-    #Retourne un tuple de 2 éléments contenant :
+    #Retourne un tuple de 3 éléments contenant :
     #Un tableau contenant les coordonnées du chemin de résolution
     #Un tableau contenant les coordonnées des cases visitées
+    #Une chaîne de caractère : le label de la méthode de résolution
     def backtrack_solving_map(self):
         current_cell = self.layout[0][0] #Case de départ
         path = [current_cell] #Chemin de résolution
@@ -189,13 +188,15 @@ class Maze:
         return ( [(cell.v, cell.h) for cell in path] , [(cell.v, cell.h) for cell in heatmap] , "RB")
 
 
+    #Distance heuristique d'une cellule à la sortie
     def dist(self, cell):
         return 2*(self.N-1) - cell.v - cell.h
     
     #Résolution par l'algorithme A-star
-    #Retourne un tuple de 2 éléments contenant :
+    #Retourne un tuple de 3 éléments contenant :
     #Un tableau contenant les coordonnées du chemin de résolution
     #Un tableau contenant les coordonnées des cases visitées
+    #Le label
     def astar_solving_map(self):
         #Dictionnaires dont les clés sont les cellules, 
         cost = {} #Coût - du déplacement de la cellule initiale jusqu'à la cellule
