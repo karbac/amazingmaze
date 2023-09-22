@@ -82,7 +82,8 @@ Contient les labyrinthes générés au format jpg
 Contient les labyrinthes résolus, au format jpg
 
 # PERFORMANCE
-Les deux algorithmes de génération de labyrinthes sont de complexité O(N²) - doubler la taille équivaut à approximativement quadrupler le temps d'éxécution.  
+Les deux algorithmes de génération de labyrinthes sont de complexité **O(N²)**   
+Doubler la taille équivaut à approximativement quadrupler le temps d'éxécution.  
 L'algorithme de Kruskal est toujours plus performant en termes de temps d'éxécution que l'algorithme de Recursive Backtracking  
 
 Résolution par Recursive Backtracking : Temps d'éxécution très variable car l'algorithme peut tourner pendant très longtemps si il explore des longues impasses  
