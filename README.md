@@ -1,6 +1,6 @@
 # PRESENTATION
 On se propose d'implémenter des algorithmes de génération et de résolution de labyrinthe.  
-Il existe variété d'algorithmes pouvant générer et résoudre des labyrinthes.  
+Il existe variété d'algorithmes de conception et de résolution des labyrinthes.  
 Nous nous intérésserons ici à l'algorithme de **Recursive Backtracking** pour la génération et la résolution, l'algorithme de **Kruskal** pour la génération, ainsi que l'algorithme d'**A-star** pour la résolution.  
 On considérera qu'un **labyrinthe** est composé de N x N **cellules**, si N est la taille du labyrinthe, et que des **murs** peuvent exister entre ces cellules.  
 On ne peut se déplacer que d'une cellule à une **cellule adjacente**, et que s'il n'existe pas de mur entre les deux. On ne peut pas se déplacer diagonalement.  
