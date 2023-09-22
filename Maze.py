@@ -76,7 +76,7 @@ class Maze:
         pygame.display.flip()
         if not solving:
             pygame.image.save(SCREEN, f"mazes/{self.filename.split('.')[0]}.jpg")
-            print(f"Image sauvegardée dans le dossier mazes sous le nom : {self.filename}.jpg")
+            print(f"Labyrinthe sauvegardé dans le dossier mazes sous le nom : {self.filename}.jpg")
         
                     
     
@@ -243,7 +243,7 @@ class Maze:
         
     #Chemin de résolution en entrée
     #Affichage graphique du labyrinthe et du chemin de résolution
-    def solving_display(self, mapping, mapping2 = None , show_heatmap=True):
+    def solving_display(self, mapping, mapping2 = None , show_heatmap=True, animate=False):
         #Paramètres
         WIDTH = 825
         PATHCOLOR = (255,255,255)
@@ -257,8 +257,9 @@ class Maze:
         TEMPO = 0.5
 
         path, heatmap, label = mapping
-        self.display(solving=True) #Affichage du labyrinthe brut
-        time.sleep(TEMPO)
+        solving = False if mapping2 else True
+        self.display(solving=solving) #Affichage du labyrinthe brut
+        if animate: time.sleep(TEMPO)
 
         #Affiche tous les points visités par l'algorithme
         if show_heatmap and not mapping2:
@@ -267,21 +268,22 @@ class Maze:
             for coord in heatmap:
                 x,y = coord
                 SCREEN.blit( HEATCHUNK , ( (2*y+1)*CHUNK , (2*x+1)*CHUNK) )
-                pygame.display.flip()
+                if animate: pygame.display.flip()
 
-        time.sleep(TEMPO)
+        if animate: time.sleep(TEMPO)
         
         #Affiche le second chemin si demandé
         if mapping2:
+            label = "COMAP"
             path2 = mapping2[0]
             for i,coord in enumerate(path2):
                 if i==0: continue
                 v2,h2 = coord
                 v1,h1 = path2[i-1]
                 pygame.draw.line( SCREEN, PATHCOLOR2 , ((3+4*h1)*CHUNK/2 , (3+4*v1)*CHUNK/2 ) , ((3+4*h2)*CHUNK/2 , (3+4*v2)*CHUNK/2), THICKNESS)
-                pygame.display.flip()
+                if animate: pygame.display.flip()
 
-        time.sleep(TEMPO)
+        if animate: time.sleep(TEMPO)
         pygame.draw.line(SCREEN, PATHCOLOR , (0,3*CHUNK/2) , (3*CHUNK/2,3*CHUNK/2), THICKNESS) #Entrée
         #Liaison de tous les points du chemin
         for i,coord in enumerate(path):
@@ -289,12 +291,12 @@ class Maze:
             v2,h2 = coord
             v1,h1 = path[i-1]
             pygame.draw.line( SCREEN, PATHCOLOR, ((3+4*h1)*CHUNK/2 , (3+4*v1)*CHUNK/2 ) , ((3+4*h2)*CHUNK/2 , (3+4*v2)*CHUNK/2), THICKNESS)
-            pygame.display.flip()
+            if animate: pygame.display.flip()
         pygame.draw.line(SCREEN, PATHCOLOR , (WIDTH-3*CHUNK/2,WIDTH-3*CHUNK/2) , (WIDTH,WIDTH-3*CHUNK/2), THICKNESS) #Sortie
         pygame.display.flip()
         #Sauvegarde de l'image
         pygame.image.save(SCREEN, f"solvedmazes/{self.filename}-{label}.jpg")
-        print(f"Image sauvegardée dans le dossier solvedmazes sous le nom : {self.filename}-{label}.jpg")
+        print(f"Labyrinthe résolu sauvegardé dans le dossier solvedmazes sous le nom : {self.filename}-{label}.jpg")
 
             
        

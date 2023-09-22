@@ -1,21 +1,15 @@
 from util import *
 import os
 
-#filename = input("Entrez le nom du fichier - sans extension : ")
-#filename += ".txt"
+filename = input("Entrez le nom du labyrinthe : ") + ".txt"
 
-#if not os.path.isfile(filename):
-#    print("Fichier non-existant")
-#    exit()
+if not os.path.isfile(f"doodles/{filename}"):
+    print("Non-existant")
+    exit()
 
-filename = "random50.txt"
-start = time.time()
+#filename = "random100.txt"
+
 maze = create_maze_from_doodlefile(filename)
-mapping = maze.backtrack_solving_map()
-end = time.time()
-print(end-start , len(mapping[1]))
+maze.solving_display( maze.backtrack_solving_map() )
 
-
-maze.solving_display( mapping )
-#print(maze.doodle(mapping))
 
