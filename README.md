@@ -108,7 +108,7 @@ _id_ : Entier - Identifiant de la cellule - utile pour l'algorithme de Kruskal
 _walls_ : Dictionnaire dont les clés sont les 4 points cardinaux (N,S,E,W) et dont les valeurs sont des booléens. Indique si un mur dans une direction existe ou non.
 
 ### Classe Maze - Labyrinthe:
-_N_ : Entier - Dimension du labyrinthe
+_N_ : Entier - Taille du labyrinthe, en longueur.   
 _layout_: Liste de liste de taille _N_ x _N_ composée des cellules composant le labyrinthe, l'entrée se situe à **(0,0)** et la sortie à **(N-1,N-1)**  
 _filename_ : Chaîne de caractères - nom qui est donné labyrinthe lorsqu'il est exporté en fichier texte ou jpg  
 _done_ : Booléen - Indique l'état du labyrinthe : construit ou pas.
