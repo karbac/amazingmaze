@@ -31,7 +31,7 @@ On part de la cellule de départ.
 On se déplace un voisin non-visité au hasard. Si il n'existe pas de voisin non-visité, on revient en arrière.
 On répète ce procédé jusqu'à arriver à la sortie et reconstruire le chemin.
 
-### Algorithme de résolution d'A-star - Chemin optimal
+### Algorithme de résolution d'A-star
 _Algorithme de résolution par recherche du chemin optimal_  
 Nos cellules se voient attribuées plusieurs propriétés :  
 Le **coût** : Représente le nombre de mouvements minimum nécéssaires pour arriver à cette cellule depuis la case de départ - Un mouvement représente un déplacement d'une cellule à une cellule adjacente  
