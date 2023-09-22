@@ -94,10 +94,10 @@ L'algorithme d'A-star retourne toujours le chemin optimal dans le cas d'un labyr
 # NOTES
 Bien que l'algorithme de Recursive Backtracking et de Kruskal génèrent des labyrinthes parfaits, on peut noter des différences sur l'architecture des labyrinthes :  
 L'algorithme de Recursive Backtracking tend à génèrer des impasses de longueur hétérogène, c'est-à-dire des impasses "très" courtes et "très" longues  
-L'algorithme de Kruskal tend à génèrer des impasses de longueur plus homogène.  
+L'algorithme de Kruskal tend à génèrer des impasses de longueur plus homogène.    
 
-A partir d'une certaine taille, le rendu jpg ne sera plus très fiable, les cellules étant trop petites pour être représentées.
-
+A partir d'une certaine taille, le rendu jpg ne sera plus très fiable, les cellules étant trop petites pour être représentées.  
+Le paramètre **WIDTH** peut être modifié, dans les méthodes display() et solving_display() de la classe _Maze_, pour un rendu plus grand ou petit.
 
 # TERMINOLOGIE DE CODE
 
