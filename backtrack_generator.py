@@ -1,5 +1,4 @@
 from util import *              
-import cprofile
 
 #Génére un fichier .txt représentant un labyrinthe aléatoire de la taille demandée
 
