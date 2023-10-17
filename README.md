@@ -39,13 +39,13 @@ La **distance heuristique** : La distance minimale possible entre la cellule et 
 Le **score** ou le coût total : Représente la somme entre le coût et la distance restante  
 On tiendra deux listes : Une liste ouverte représentant les cases à explorer et une liste fermée représentant les cases déjà explorées    
 
-On part de la cellule de départ et on lui attribut un coût de 0.  
-La cellule actuelle - à visiter - sera la cellule de la liste ouverte avec le score le plus bas.    
-La cellule actuelle est déplacée de la cellule ouverte à la cellule fermée.  
-Les cellules voisines non-explorés de la cellule actuelle sont ajoutés à la liste ouverte.  
-Chacune de ces cellules voisines voit également son coût évalué (= coût de la cellule précédente + 1)  
-Si ce coût évalué est inférieur à celui qui lui est effectivement attribué ou si il n'a jamais été évalué, on conserve/actualise les informations de cette cellule(coût, score)  
-Lorsque la cellule actuelle est la cellule de sortie, alors il faudra reconstruire le chemin.  
+On part de la cellule de départ et on lui attribut un coût de 0    
+La cellule actuelle - à visiter - sera la cellule de la liste ouverte avec le score le plus bas      
+La cellule actuelle est déplacée de la cellule ouverte à la cellule fermée  
+Les cellules voisines non-explorés de la cellule actuelle sont ajoutés à la liste ouverte    
+Chacune de ces cellules voisines voit également son coût évalué (= coût de la cellule précédente + 1)    
+Si ce coût évalué est inférieur à celui qui lui est effectivement attribué ou si il n'a jamais été évalué, on conserve/actualise les informations de cette cellule(coût, score)    
+Lorsque la cellule actuelle est la cellule de sortie, alors il faudra reconstruire le chemin    
 
 # FICHIERS
 
@@ -59,19 +59,19 @@ Contient les méthodes qui ne sont pas relatives aux classes Cell et Maze
 
 ## SCRIPTS
 ### backtrack_generator.py & kruskal_generator.py
-Génération d'un labyrinthe de la taille demandée en utilisant la méthode, respectivement du Recursive Backtracking ou de l'algorithme de Kruskal.  
+Génération d'un labyrinthe de la taille demandée en utilisant la méthode, respectivement du Recursive Backtracking ou de l'algorithme de Kruskal    
 Enregistre ce labyrinthe au format texte avec le nom demandé, affiche ce labyrinthe sur une fenêtre pygame et l'enregistre au format JPG
 
 ### backtrack_solving.py & astar_solving.py
 Prend en entrée un nom de fichier contenant un labyrinthe.  
-A l'aide de l'algorithme de recursive backtracking ou de A-star, génère le chemin de résolution du labyrinthe.  
+A l'aide de l'algorithme de recursive backtracking ou de A-star, génère le chemin de résolution du labyrinthe   
 Affiche le labyrinthe avec le chemin de résolution et les cases visitées par l'algorithme et enregistre au format JPG 
 
 ### loopymaze.py
-Génération d'un labyrinthe non-parfait, avec plusieurs chemins de résolution. Pour ce faire, on éxécute l'algorithme de génération de Kruskal puis on casse des murs supplémentaires au hasard.   
-On affiche également la résolution de ce labyrinthe par les 2 algorithmes de résolution, afin de faire un comparatif.
-L'algorithme d'A-star choisira toujours le chemin optimal - avec le moins de déplacements, alors que l'algorithme de Recursive Backtracking choisira un chemin au hasard, même non-optimal.  
-Libre à vous de modifier la valeur de N.
+Génération d'un labyrinthe non-parfait, avec plusieurs chemins de résolution. Pour ce faire, on éxécute l'algorithme de génération de Kruskal puis on casse des murs supplémentaires au hasard    
+On affiche également la résolution de ce labyrinthe par les 2 algorithmes de résolution, afin de faire un comparatif  
+L'algorithme d'A-star choisira toujours le chemin optimal - avec le moins de déplacements, alors que l'algorithme de Recursive Backtracking choisira un chemin au hasard, même non-optimal    
+Libre à vous de modifier la valeur de N  
 
 ## DOSSIERS
 ### doodles 
@@ -94,10 +94,10 @@ L'algorithme d'A-star retourne toujours le chemin optimal dans le cas d'un labyr
 # NOTES
 Bien que l'algorithme de Recursive Backtracking et de Kruskal génèrent des labyrinthes parfaits, on peut noter des différences sur l'architecture des labyrinthes :  
 L'algorithme de Recursive Backtracking tend à génèrer des impasses de longueur hétérogène, c'est-à-dire des impasses "très" courtes et "très" longues  
-L'algorithme de Kruskal tend à génèrer des impasses de longueur plus homogène.    
+L'algorithme de Kruskal tend à génèrer des impasses de longueur plus homogène     
 
-A partir d'une certaine taille, le rendu jpg ne sera plus très fiable, les cellules étant trop petites pour être représentées.  
-Le paramètre **WIDTH** peut être modifié, dans les méthodes display() et solving_display() de la classe _Maze_, pour un rendu plus grand ou petit.
+A partir d'une certaine taille, le rendu jpg ne sera plus très fiable, les cellules étant trop petites pour être représentées   
+Le paramètre **WIDTH** peut être modifié, dans les méthodes display() et solving_display() de la classe _Maze_, pour un rendu plus grand ou petit  
 
 # TERMINOLOGIE DE CODE
 
@@ -108,9 +108,9 @@ _id_ : Entier - Identifiant de la cellule - utile pour l'algorithme de Kruskal
 _walls_ : Dictionnaire dont les clés sont les 4 points cardinaux (N,S,E,W) et dont les valeurs sont des booléens. Indique si un mur dans une direction existe ou non.
 
 ### Classe Maze - Labyrinthe:
-_N_ : Entier - Dimension du labyrinthe
+_N_ : Entier - Taille du labyrinthe, en longueur.   
 _layout_: Liste de liste de taille _N_ x _N_ composée des cellules composant le labyrinthe, l'entrée se situe à **(0,0)** et la sortie à **(N-1,N-1)**  
-_filename_ : Chaîne de caractères - nom qui est donné labyrinthe lorsqu'il est exporté en fichier texte ou jpg
+_filename_ : Chaîne de caractères - nom qui est donné labyrinthe lorsqu'il est exporté en fichier texte ou jpg  
 _done_ : Booléen - Indique l'état du labyrinthe : construit ou pas.
 
 ## VARIABLES
